@@ -1,0 +1,270 @@
+---
+title: "Simulasi Membandingkan Pendekatan Integral dengan Hit and Miss dan Mean"
+author: "Subekti"
+date: "March 27, 2019"
+output: html_document
+---
+# Tugas Teknik Analisis dan Simulasi Data
+## Membandingkan hasil perbandingan hasil integral dari pendekatan hit and miss dan mean
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Fungsi Umum Integral Pendekatan hit and miss
+```{r cars}
+IntegralHitMiss <- function(func,a,b,n,tol=NULL) {
+  INT<-integrate(func,a,b)
+  true <-INT$value
+  batas <- max(func(runif(n,a,b)))
+  #par(mfrow=c(2,1))
+  plot(c(a,b),c(0,batas),main = "Hit and Miss",type = "n", xlab = "X", ylab = "f(x)")
+  curve(func,a,b,col= "black", lwd=2, add = T )
+  jml <- 0
+  hit <- 0
+  result <- NULL
+  for (i in 1:n) {
+    x <- runif(1,a,b)
+    y <- runif(1,0,batas)
+    fx <- func(x)
+    points(x,y,col=ifelse(abs(y) <= abs(fx) ,"blue","red"))
+    jml <- jml +1
+    if (abs(y) <= abs(fx)) { 
+      hit <- hit + 1
+    }
+    result[i]<-abs(b-a)*abs(batas-0)*hit/jml
+    
+    if (!is.null(tol)){
+      if(abs(true-result[i])<tol){
+        ket <- "Batas Toleransi dalam Perulangan"
+        break
+      } else{
+        ket <- "Batas Toleransi diluar Perulangan"
+      }
+      
+    }else{
+      ket <- "Tanpa batas toleransi"
+    }
+    
+  }
+  plot(c(0,n),c(0,batas), type="n" ,main = "Hit and Miss",xlab = "Jumlah Iterasi", ylab = "Hasil integral")
+  lines(result, col="black")
+  abline(h= true, col="red")
+  cat("True Value =",true)
+  cat("\nIntegral Pendekatan Hit and Miss")
+  cat("\nHasil Integral = ",result[jml])
+  cat("\nJumlah Perulangan =",jml)
+  cat("\nToleransi=",tol)
+  cat("\nKeterangan=",ket)
+  return()
+}
+```
+## Fungsi Umum Integral Pendektan Mean
+
+```{r}
+IntegralMean <- function(func,a,b,n,tol=NULL) {
+  INT<-integrate(func,a,b)
+  true <-INT$value
+  batas <- max(func(runif(n,a,b)))
+  jml <- 0
+  fxx <- 0
+  hasil <- NULL
+  p <- NULL
+  q <- NULL
+  for (i in 1:n) {
+    x <- runif(1,a,b)
+    y <- runif(1,0,batas)
+    fx <- func(x)
+    jml <- jml +1
+    fxx <- fxx + fx
+    p[i] <- x
+    q[i] <- fx
+    hasil[i] <- abs(b-a)*fxx/jml
+    
+    if (!is.null(tol)){
+      if(abs(true-hasil[i])<tol){
+        ket <- "Batas Toleransi dalam Perulangan"
+        break
+      } else{
+        ket <- "Batas Toleransi diluar Perulangan"
+      }
+      
+    }else{
+      ket <- "Tanpa batas toleransi"
+    }
+  }
+  plot(p,q,col="red",type = "h",main = "Integral Mean", xlab = "X", ylab = "f(x)")
+  curve(func,a,b,col= "black", lwd=2, add = T )
+  plot(c(0,n),c(0,batas), type="n",main = "Integral Mean",xlab = "Jumlah Iterasi", ylab = "Hasil integral")
+  lines(hasil, col="black")
+  abline(h= true, col="red")
+  cat("Integral Pendekatan Mean")
+  cat("\nHasil Integral = ",hasil[jml])
+  cat("\nJumlah Perulangan =",jml)
+  cat("\nToleransi=",tol)
+  cat("\nKeterangan=",ket)
+  return()
+}
+```
+## Fungsi Umum Perbandingan Integral
+```{r}
+Perbandingaintegral <- function(f,a,b,n=1000) {
+  batas <- max(f(runif(n,a,b)))
+  sumy <- 0
+  ys <- 0
+  hit <- 0
+  hasil <- NULL
+  result <- NULL
+  aa<-integrate(f,a,b)
+  batas2 <- ceiling(batas)
+  for (i in 1:n) {
+    a1 <- runif(1,a,b)
+    b1 <- runif(1,0,batas)
+    y <- f(a1)
+    ys <- ys + y
+    sumy <- sumy + 1 
+    hasil[i] <- abs(b-a)*ys/sumy 
+    if (abs(b1) <= abs(y)) { 
+      hit <- hit + 1
+    }
+    result[i] <- abs(b-a)*abs(batas-0)*hit/sumy
+  }
+  plot(NULL,xlim = c(0,n),ylim = c(0,batas2) ,main = "Perbandingan Integral Mean dan Integral Hit and Miss ",sub = "Hit and Miss (blue), mean(red)",type="n", xlab = "Jumlah Iterasi", ylab = "Nilai Fungsi")
+  abline(h= aa$value, col="green")
+  lines(hasil, col="red")
+  lines(result, col="blue")
+  cat("Perbandingan Integral Secara Umum")
+  cat("\nhasil pendekatan plot = ",result[n])
+  cat("\nhasil pendekatan mean =",hasil[n])
+  return()
+}
+```
+
+### Soal 1
+
+```{r pressure, echo=FALSE}
+fungsi1 <- function(x,y=NULL,z=NULL) {
+  y <- (cos(50*x) + sin(20*x))^2
+  return(y)
+}
+```
+
+#### Jawab :
+Simulasi integral dengan n = 10000 toleransi = 0.001, batas integral (0,1)
+```{r,echo=FALSE}
+IntegralHitMiss(fungsi1,0,1,10000,0.001)
+IntegralMean(fungsi1,0,1,10000,0.001)
+Perbandingaintegral(fungsi1,0,1,10000)
+```
+
+Keterangan : hasil detail dapat dilihat di konsol, Hasil pada perbandingan fungsi integral merupakan generate angka random ulang dalam simulasi umum, hal ini memungkinkan perbedaan nilai pada ketiga hasil tersebut.
+
+### Soal 2
+
+```{r pressure, echo=FALSE}
+fungsi2 <- function(x,y=NULL,z=NULL) {
+  y <- cos(sqrt(x^3 +1))^2
+  return(y)
+}
+```
+
+#### Jawab :
+Simulasi integral dengan n = 10000 toleransi = 0.001, batas integral (-1,2)
+```{r,echo=FALSE}
+IntegralHitMiss(fungsi2,-1,2,10000,0.001)
+IntegralMean(fungsi2,-1,2,10000,0.001)
+Perbandingaintegral(fungsi2,-1,2,10000)
+```
+Keterangan: hasil detail dapat dilihat di konsol, Hasil pada perbandingan fungsi integral merupakan generate angka random ulang dalam simulasi umum, hal ini memungkinkan perbedaan nilai pada ketiga hasil tersebut.
+
+### Soal 4
+
+```{r pressure, echo=FALSE}
+fungsi4 <- function(x,y=NULL,z=NULL) {
+  y <- exp(-2*abs(x-5))
+  return(y)
+}
+```
+
+#### Jawab :
+Simulasi integral dengan n = 10000 toleransi = 0.001, batas integral (0,10)
+```{r,echo=FALSE}
+IntegralHitMiss(fungsi4,0,10,10000,0.001)
+IntegralMean(fungsi4,0,10,10000,0.001)
+Perbandingaintegral(fungsi4,0,10,10000)
+```
+Keterangan: hasil detail dapat dilihat di konsol, Hasil pada perbandingan fungsi integral merupakan generate angka random ulang dalam simulasi umum, hal ini memungkinkan perbedaan nilai pada ketiga hasil tersebut.
+## Soal 3 (Integral Lipat 3)
+```{r}
+fungsi3 <- function(x,y=NULL,z=NULL) {
+  y <- exp(-x^2/2*y)/((x^2*z)+1)
+  return(y)
+}
+```
+
+
+### Hasil Eksak Integral lipat 3
+```{r}
+a3 <- integrate(Vectorize(function(x){
+  integrate(Vectorize(function(y){
+    integrate(function(z){exp(-x^2/2*y)/((x^2*z)+1)},0,1)$value
+  }),0.5,1)$value
+}),-2,2)
+true3 <- a3$value
+```
+
+
+### FungsiPerbandingan Integral untuk Integral Lipat 3
+```{r}
+Perbandingaintegral3 <- function(func,a,b,c,d,e,f,n=10000) {
+  batas <- true3
+  sumy <- 0
+  ys <- 0
+  hit <- 0
+  hasil <- NULL
+  result <- NULL
+  batas2 <- ceiling(batas)
+  c1 <- runif(n,a,b)
+  c2 <- runif(n,c,d)
+  c3 <- runif(n,e,f)
+  fxmax <-max(func(c1,c2,c3))
+  fxmin <-min(func(c1,c2,c3))
+  for (i in 1:n) {
+    a1 <- runif(1,a,b)
+    a2 <- runif(1,c,d)
+    a3 <- runif(1,e,f)
+    y <- func(a1,a2,a3)
+    ys <- ys + y
+    sumy <- sumy + 1 
+    hasil[i] <- abs(b-a)*abs(d-c)*abs(f-e)*ys/sumy
+  } 
+  t <- NULL
+  sumsum <- 0
+  for (i in 1:n) {
+    node1 <- runif(1,fxmin,fxmax)
+    node2 <- runif(1,fxmin,fxmax)
+    node3 <- runif(1,fxmin,fxmax)
+    t <- func(node1,node2,node3)
+    if (abs(node1) <= abs(t)&& abs(node2)<=abs(t)&&abs(node3)<=abs(t)) { 
+      hit <- hit + 1
+    }
+    sumsum <- sumsum +1
+    result[i] <- hit/sumsum*abs(b-a)*abs(d-c)*abs(f-e)*(fxmax-fxmin)
+    
+  }
+  plot(NULL,xlim = c(0,n),ylim = c(0,batas2) ,main = "Perbandingan Integral Mean dan Integral Hit and Miss ",sub = "Hit and Miss (blue), mean(red)",type="n", xlab = "Jumlah Iterasi", ylab = "Nilai Fungsi")
+  abline(h= true3, col="green")
+  lines(hasil, col="red")
+  lines(result, col="blue")
+  cat("Perbandingan Integral lipat tiga")
+  cat("\nTrue Value=",true3)
+  cat("\nhasil pendekatan plot = ",result[n])
+  cat("\nhasil pendekatan mean =",hasil[n])
+  return()
+}
+```
+
+## Hitung Perbandingan Integral
+```{r}
+Perbandingaintegral3(fungsi3,-2,2,0.5,1,0,1,10000)
+```
+Pada Integral Lipat 3 pendekatan Hit and Miss Tidak akurat
